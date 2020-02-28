@@ -103,7 +103,33 @@ unsigned int channel = 0;
 
 unsigned int NullFiller(lms_stream_t *tx_stream, int NbPacket, bool fpga)
 {
-	unsigned char NullPacket[188] = {0x47, 0x1F, 0xFF, 'F', '5', 'O', 'E', 'O'};
+	//unsigned char NullPacket[188] = {0x47, 0x1F, 0xFF, 'F', '5', 'O', 'E', 'O'};
+	unsigned char NullPacket[188] = {
+	0x47, 0x1F, 0xFF, 0x10, 
+        0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
+        0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
+        0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
+        0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
+        0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
+        0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
+        0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
+        0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
+        0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
+        0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
+        0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
+        0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
+        0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
+        0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
+        0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
+        0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
+        0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
+        0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
+        0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
+        0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
+        0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
+        0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
+        0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
+	};
 	unsigned int TotalSampleWritten = 0;
 	for (int i = 0; i < NbPacket; i++)
 	{
@@ -141,47 +167,6 @@ unsigned int NullFiller(lms_stream_t *tx_stream, int NbPacket, bool fpga)
 				{
 					Frame = Dvbs2_get_MapIQ(&fpgalen);
 				}
-				/*
-			// TEST
-			{
-			static short TestFrame[4080];
-			static int TestLen=0;
-			static int firstpacket=0;
-
-			if(firstpacket<10)
-			{
-				TestLen=6*50;
-				
-				for(int i=0;i<TestLen*2/6;i++)
-				{
-					TestFrame[i*6]=0x0000;
-					TestFrame[i*6+1]=0xAAA0;
-					TestFrame[i*6+2]=0xFFF0;
-					TestFrame[i*6+3]=0x5550;
-					TestFrame[i*6+4]=0xFFF0;
-					TestFrame[i*6+5]=0xAAA0;
-				
-				}
-
-				//memcpy(TestFrame,Frame,TestLen*2*sizeof(short));
-				
-				firstpacket++;
-				fprintf(stderr, "First Frame %d\n", TestLen*2);
-			}
-			
-			lms_stream_meta_t meta;
-			meta.flushPartialPacket = false;
-			meta.timestamp = 0;
-			meta.waitForTimestamp = false;
-			
-			int nb_samples = LMS_SendStream(tx_stream, TestFrame, TestLen , &meta, 1000);
-			if (TestLen != nb_samples)
-				fprintf(stderr, "TimeOUT %d\n", nb_samples);
-
-			return TestLen;
-			}
-			//END TEST
-			*/
 
 				lms_stream_meta_t meta;
 				meta.flushPartialPacket = false;
@@ -200,24 +185,29 @@ unsigned int NullFiller(lms_stream_t *tx_stream, int NbPacket, bool fpga)
 	return TotalSampleWritten;
 }
 
-bool Tune(lms_stream_t *tx_stream, int Frequency)
+bool Tune(lms_stream_t *tx_stream, bool fpga)  // Carrier Mode
 {
-	// frequency is Symbol rate!!
-#define LEN_CARRIER 1000
-	static sfcmplx Frame[LEN_CARRIER];
-	if (Frequency == 0)
+#define LEN_CARRIER 100000  // Shorter lengths do not seem to work
+
+	if (!fpga)  // Normal LimeSDR Mini
+	{
+		static sfcmplx Frame[LEN_CARRIER];
 		for (int i = 0; i < LEN_CARRIER; i++)
 		{
 			Frame[i].re = 0x7fff;
 			Frame[i].im = 0;
 		}
+		LMS_SendStream(tx_stream, Frame, LEN_CARRIER, NULL, 1000);
+	}
 	else
 	{
-		//write a Chirp or Spectrum paint something ?
+		static short Frame[LEN_CARRIER];
+		for (int i = 0; i < LEN_CARRIER; i++)
+		{
+			Frame[i] = 0x00;
+		}
+		LMS_SendStream(tx_stream, Frame, LEN_CARRIER, NULL, 1000);
 	}
-	//int nb_samples = LMS_SendStream(tx_stream, Frame, LEN_CARRIER, NULL, 1000);
-	LMS_SendStream(tx_stream, Frame, LEN_CARRIER, NULL, 1000);
-	//fwrite(Frame, sizeof(sfcmplx), LEN_CARRIER, output);
 	return true;
 }
 
@@ -228,9 +218,9 @@ bool RunWithFile(lms_stream_t *tx_stream, bool live, bool fpga)
 	static char Garbage[188];
 	static uint64_t DebugReceivedpacket = 0;
 	//fprintf(stderr, "Output samplerate is %u\n", CalibrateOutput());
-	if (FEC == -1)
+	if (FEC == -1)  // Carrier Mode
 	{
-		Tune(tx_stream, 0);
+		Tune(tx_stream, fpga);
 		return true; // Bypass real modulation
 	}
 
@@ -470,7 +460,7 @@ int main(int argc, char **argv)
 				FEC = -1;
 			} //CARRIER MODE
 			if (strcmp("test", optarg) == 0)
-				FEC = -2; //TEST MODE
+				FEC = -2; //TEST MODE Not implemented
 			break;
 		case 'h': // help
 			print_usage();
@@ -727,7 +717,7 @@ int main(int argc, char **argv)
 	}
 */
 
-	int DebugCount = 0;
+	//int DebugCount = 0;
 	//bool FirstTx = true;
 	//bool Transition = true;
 	LMS_StartStream(&tx_stream);
@@ -767,11 +757,11 @@ int main(int argc, char **argv)
 			}
 		}
 
-		if (DebugCount % 1000 == 0)
-		{
-			fprintf(stderr, "Fifo =%d/%d dropped %d underrun %d overrun %d Link=%f \n", Status.fifoFilledCount, Status.fifoSize, Status.droppedPackets, Status.underrun, Status.overrun, Status.linkRate);
-		}
-		DebugCount++;
+		//if (DebugCount % 1000 == 0)
+		//{
+		//	fprintf(stderr, "Fifo =%d/%d dropped %d underrun %d overrun %d Link=%f \n", Status.fifoFilledCount, Status.fifoSize, Status.droppedPackets, Status.underrun, Status.overrun, Status.linkRate);
+		//}
+		//DebugCount++;
 	}
 
 	// Set PTT off
