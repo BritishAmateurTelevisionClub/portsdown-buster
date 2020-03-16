@@ -1,3 +1,8 @@
+202003140
+Added QO-100 Frequencies to Menu
+Added keyedtxtouch mode
+Adjust C920 Power Line Frequency
+
 202002290
 Add IPTS Viewer
 Correct format of null packets in limesdr_dvb.cpp
