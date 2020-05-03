@@ -1,6 +1,6 @@
 #!/bin/bash
 
-PATHBIN="/home/pi/rpidatv/bin/"
+PCONFIGFILE="/home/pi/rpidatv/scripts/portsdown_config.txt"
 RCONFIGFILE="/home/pi/rpidatv/scripts/longmynd_config.txt"
 
 ############ FUNCTION TO READ CONFIG FILE #############################
@@ -33,6 +33,7 @@ AUDIO_OUT=$(get_config_var audio $RCONFIGFILE)
 INPUT_SEL=$(get_config_var input $RCONFIGFILE)
 INPUT_SEL_T=$(get_config_var input1 $RCONFIGFILE)
 LNBVOLTS=$(get_config_var lnbvolts $RCONFIGFILE)
+DISPLAY=$(get_config_var display $PCONFIGFILE)
 
 # Correct for LNB LO Frequency if required
 if [ "$RX_MODE" == "sat" ]; then
@@ -45,9 +46,9 @@ fi
 
 # Send audio to the correct port
 if [ "$AUDIO_OUT" == "rpi" ]; then
-  AUDIO_MODE="local"
+  AUDIO_DEVICE="hw:CARD=ALSA,DEV=0"
 else
-  AUDIO_MODE="alsa:plughw:1,0"
+  AUDIO_DEVICE="hw:CARD=Device,DEV=0"
 fi
 
 # Select the correct tuner input
@@ -66,20 +67,18 @@ if [ "$LNBVOLTS" == "v" ]; then
 fi
 
 sudo killall longmynd >/dev/null 2>/dev/null
-sudo killall omxplayer.bin >/dev/null 2>/dev/null
+sudo killall vlc >/dev/null 2>/dev/null
 
 sudo rm longmynd_main_ts
 mkfifo longmynd_main_ts
 
 sudo /home/pi/longmynd/longmynd -s longmynd_status_fifo $VOLTS_CMD $INPUT_CMD $FREQ_KHZ $SYMBOLRATEK &
 
-omxplayer --adev $AUDIO_MODE --live --layer 0 longmynd_main_ts & ## works for touchscreens
-
-#omxplayer --adev $AUDIO_MODE --live --display 5 --layer 10 longmynd_main_ts &  ## for HDMI
+if [ "$DISPLAY" == "Element14_7" ]; then
+  cvlc -I rc --rc-host 127.0.0.1:1111 -f --width 800 --height 480 --gain 4 --alsa-audio-device $AUDIO_DEVICE longmynd_main_ts 2>/home/pi/vlclog.txt &
+else  # Waveshare
+  cvlc -I rc --rc-host 127.0.0.1:1111 -f --gain 4 --alsa-audio-device $AUDIO_DEVICE longmynd_main_ts 2>/home/pi/vlclog.txt &
+fi
 
 exit
-
-
-
-
 
