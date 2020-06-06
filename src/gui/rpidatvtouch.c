@@ -3007,24 +3007,23 @@ void ChangeRTLppm()
  
 int DetectLimeNETMicro()
 {
-  char shell_command[127];
-  FILE * shell;
-  strcpy(shell_command, "cat /proc/device-tree/model | grep 'Raspberry Pi Compute Module 3'");
-  shell = popen(shell_command, "r");
-  int r = pclose(shell);
-  if (WEXITSTATUS(r) == 0)
+  int r;
+
+  r = WEXITSTATUS(system("cat /proc/device-tree/model | grep 'Raspberry Pi Compute Module 3'"));
+
+  if (r == 0)
   {
     printf("LimeNET Micro detected\n");
     return 1;
   }
-  else if (WEXITSTATUS(r) == 1)
+  else if (r == 1)
   {
     printf("LimeNET Micro not detected\n");
     return 0;
   } 
   else 
   {
-    printf("LimeNET Micro unexpected exit status %d\n", WEXITSTATUS(r));
+    printf("LimeNET Micro unexpected exit status %d\n", r);
     return 2;
   }
 }
@@ -6158,6 +6157,19 @@ void GreyOut11()
     SetButtonStatus(ButtonNumber(CurrentMenu, 9), 2); // grey-out Frames long/short
   }
 }
+
+void GreyOut12()
+{
+  if(strcmp(CurrentModeOP, "JLIME") == 0) // Jetson Selected
+  {
+    SetButtonStatus(ButtonNumber(CurrentMenu, 7), 0); // Show H265 button
+  }
+  else
+  {
+    SetButtonStatus(ButtonNumber(CurrentMenu, 7), 2); // Grey-out H265 Button
+  }
+}
+
 
 void GreyOut15()
 {
@@ -12113,17 +12125,22 @@ void do_video_monitor(int button)
   {
   case 10:
     printf("Starting Video Monitor, calling av2.sh\n");
-    strcpy(startCommand, "/home/pi/rpidatv/scripts/av2.sh");
+    strcpy(startCommand, "/home/pi/rpidatv/scripts/av2.sh noaudio");
     strcat(startCommand, " &");
     break;
   case 11:
+    printf("Starting Video Monitor, calling av2.sh\n");
+    strcpy(startCommand, "/home/pi/rpidatv/scripts/av2.sh");
+    strcat(startCommand, " &");
+    break;
+  case 12:
     printf("Starting Pi Cam Monitor, calling av1.sh\n");
     strcpy(startCommand, "/home/pi/rpidatv/scripts/av1.sh");
     strcat(startCommand, " &");
     break;
-  case 12:
+  case 13:
     printf("Starting C920 Monitor, calling av3.sh\n");
-    strcpy(startCommand, "/home/pi/rpidatv/scripts/av3.sh");
+    strcpy(startCommand, "/home/pi/rpidatv/scripts/av3.sh noaudio");
     strcat(startCommand, " &");
     break;
   }
@@ -13655,7 +13672,8 @@ void waituntil(int w,int h)
           BackgroundRGB(0,0,0,255);
           UpdateWindow();
           break;
-        case 7:                               // Not used
+        case 7:                              // Check Snaps
+          do_snapcheck();
           UpdateWindow();
           break;
         case 8:                               // More Functions Menu
@@ -13674,35 +13692,18 @@ void waituntil(int w,int h)
           break;
           UpdateWindow();
           break;
-        case 10:                              // Video Monitor (EasyCap)
-        case 11:                              // Pi Cam Monitor
-        case 12:                              // Check Snaps
+        case 10:                              // Video Monitor (EasyCap) No audio
+        case 11:                              // Video Monitor (EasyCap) With audio
+        case 12:                              // Pi Cam Monitor
+        case 13:                              // C920 Monitor - no audio
           do_video_monitor(i);
           BackgroundRGB(0, 0, 0, 255);
           UpdateWindow();
           break;
-        case 13:                               // IPTS Viewer
+        case 14:                               // IPTS Viewer
           DisplayIPStream();
           BackgroundRGB(0, 0, 0, 255);
-          UpdateWindow();                     // Stay in Menu 2
-          break;
-        case 14:                              // Check Snaps
-          do_snapcheck();
-          UpdateWindow();
-          break;
-        case 15:                               // Was FreqShow
-          //if(CheckRTL()==0)
-          //{
-            //DisplayLogo();
-            //do_freqshow();
-          //}
-          //else
-          //{
-            //MsgBox("No RTL-SDR Connected");
-            //wait_touch();
-          //}
-          BackgroundRGB(0, 0, 0, 255);
-          UpdateWindow();
+          UpdateWindow();                     
           break;
         case 16:                               // Start Sig Gen and Exit
           DisplayLogo();
@@ -13866,7 +13867,18 @@ void waituntil(int w,int h)
           Start_Highlights_Menu35();
           UpdateWindow();
           break;
-        case 13:                               // Blank
+        case 13:                               // Set Default Adio Out
+          if (strcmp(LMRXaudio, "rpi") == 0)
+          {
+            strcpy(LMRXaudio, "usb");
+          }
+          else
+          {
+            strcpy(LMRXaudio, "rpi");
+          }
+          SetConfigParam(PATH_LMCONFIG, "audio", LMRXaudio);
+          Start_Highlights_Menu3();
+          UpdateWindow();
           break;
         case 14:                               // Blank
           break;
@@ -16849,9 +16861,8 @@ void Define_Menu2()
   button = CreateButton(2, 6);
   AddButtonStatus(button, "Sites/Bcns^Bearings", &Blue);
 
-  //button = CreateButton(2, 7);
-  //AddButtonStatus(button, " ", &Blue);
-  //AddButtonStatus(button, " ", &Green);
+  button = CreateButton(2, 7);
+  AddButtonStatus(button, "Snap^Check", &Blue);
 
   button = CreateButton(2, 8);
   AddButtonStatus(button, "More^Functions", &Blue);
@@ -16867,22 +16878,21 @@ void Define_Menu2()
   AddButtonStatus(button, "Video^Monitor", &Blue);
 
   button = CreateButton(2, 11);
-  AddButtonStatus(button, "Pi Cam^Monitor", &Blue);
+  AddButtonStatus(button, "Vid & Audio^Monitor", &Blue);
 
   button = CreateButton(2, 12);
-  AddButtonStatus(button, "C920^Monitor", &Blue);
+  AddButtonStatus(button, "Pi Cam^Monitor", &Blue);
 
   button = CreateButton(2, 13);
-  AddButtonStatus(button, "IPTS^Monitor", &Blue);
+  AddButtonStatus(button, "C920^Monitor", &Blue);
 
   button = CreateButton(2, 14);
-  AddButtonStatus(button, "Snap^Check", &Blue);
+  AddButtonStatus(button, "IPTS^Monitor", &Blue);
+
 
   // 4th line up Menu 2
 
-  button = CreateButton(2, 15);
-  //AddButtonStatus(button, "Freq Show^Spectrum", &Blue);
-  //AddButtonStatus(button, " ", &Green);
+  //button = CreateButton(2, 15);
 
   button = CreateButton(2, 16);
   AddButtonStatus(button, "Sig Gen^ ", &Blue);
@@ -16954,6 +16964,9 @@ void Define_Menu3()
   AddButtonStatus(button, "Set Stream^Outputs", &Blue);
   AddButtonStatus(button, "Set Stream^Outputs", &Green);
 
+  button = CreateButton(3, 13);
+  AddButtonStatus(button, "Audio out^RPi Jack", &Blue);
+
   // 4th line up Menu 3: Band Details, Preset Freqs, Preset SRs, Call and ADFRef
 
   button = CreateButton(3, 15);
@@ -16987,7 +17000,14 @@ void Define_Menu3()
 
 void Start_Highlights_Menu3()
 {
-  ;
+  if (strcmp(LMRXaudio, "rpi") == 0)
+  {
+    AmendButtonStatus(ButtonNumber(3, 13), 0, "Audio out^RPi Jack", &Blue);
+  }
+  else
+  {
+    AmendButtonStatus(ButtonNumber(3, 13), 0, "Audio out^USB dongle", &Blue);
+  }
 }
 
 void Define_Menu4()
@@ -18145,23 +18165,24 @@ void Define_Menu12()
 
   // 2nd Row, Menu 12
 
-  button = CreateButton(12, 5);
+  button = CreateButton(12, 5);                     // MPEG-2
   AddButtonStatus(button, TabEncoding[0], &Blue);
   AddButtonStatus(button, TabEncoding[0], &Green);
 
-  button = CreateButton(12, 6);
+  button = CreateButton(12, 6);                     // H264
   AddButtonStatus(button, TabEncoding[1], &Blue);
   AddButtonStatus(button, TabEncoding[1], &Green);
 
-  button = CreateButton(12, 7);
+  button = CreateButton(12, 7);                     // H265
   AddButtonStatus(button, TabEncoding[2], &Blue);
   AddButtonStatus(button, TabEncoding[2], &Green);
+  AddButtonStatus(button, TabEncoding[2], &Grey);
 
-  button = CreateButton(12, 8);
+  button = CreateButton(12, 8);                     // IPTS in
   AddButtonStatus(button, TabEncoding[3], &Blue);
   AddButtonStatus(button, TabEncoding[3], &Green);
 
-  button = CreateButton(12, 9);
+  button = CreateButton(12, 9);                     // TS File
   AddButtonStatus(button, TabEncoding[4], &Blue);
   AddButtonStatus(button, TabEncoding[4], &Green);
 }
@@ -18192,6 +18213,7 @@ void Start_Highlights_Menu12()
   {
     SelectInGroupOnMenu(12, 5, 9, 9, 1);
   }
+  GreyOut12();
 }
 
 void Define_Menu13()
@@ -21013,6 +21035,9 @@ int main(int argc, char **argv)
 
   // Check Lime connected if selected
   CheckLimeReady();
+
+  // Check for LimeNET Micro
+  LimeNETMicroDet = DetectLimeNETMicro();
 
   // Set the Band (and filter) Switching
   // Must be done after (not before) starting DATV Express Server
