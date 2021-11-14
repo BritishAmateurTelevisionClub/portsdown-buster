@@ -4223,7 +4223,7 @@ void CheckLimeReady()
     {
       if (CheckLimeUSBConnect() == 0)
       {
-        MsgBox2("LimeUSB Detected, LimeMini Selected", "Please select LimeMini");
+        MsgBox2("LimeUSB Detected, LimeMini Selected", "Please select LimeSDR USB");
       }
       else
       {
@@ -4238,7 +4238,7 @@ void CheckLimeReady()
     {
       if (CheckLimeMiniConnect() == 0)
       {
-        MsgBox2("LimeMini Detected, LimeUSB Selected", "Please select LimeUSB");
+        MsgBox2("LimeMini Detected, LimeUSB Selected", "Please select LimeSDR Mini");
       }
       else
       {
@@ -8097,6 +8097,7 @@ void TransmitStop()
   system("sudo killall sox >/dev/null 2>/dev/null");
   system("sudo killall arecord >/dev/null 2>/dev/null");
   system("sudo killall dvb_t_stack >/dev/null 2>/dev/null");
+  system("sudo killall dvb_t_stack_limeusb >/dev/null 2>/dev/null");
 
   if((strcmp(ModeOutput, "IQ") == 0) || (strcmp(ModeOutput, "QPSKRF") == 0))
   {
@@ -15455,8 +15456,84 @@ void waituntil(int w,int h)
           UpdateWindow();
           usleep(500000);
           break;
-        case 10:                                       // Video Snap
+        case 5:                                       // Video Snap
           do_snap();
+          UpdateWindow();
+          break;
+        case 10:                                      // Sig Gen
+          DisplayLogo();
+          cleanexit(130);
+          break;
+        case 11:                                                 // BandViewer
+          if (strcmp(DisplayType, "Element14_7") == 0) // 7 inch screen
+          {
+            if((CheckLimeMiniConnect() == 0) || (CheckLimeUSBConnect() == 0))
+            {
+              DisplayLogo();
+              cleanexit(136);
+            }
+            else
+            {
+              MsgBox("No LimeSDR Connected");
+              wait_touch();
+            }
+          }
+          else
+          {
+            MsgBox("7 Inch Screen Required");
+            wait_touch();
+          }
+          BackgroundRGB(0, 0, 0, 255);
+          UpdateWindow();
+          break;
+        case 12:                                                 // Power Meter
+          if (strcmp(DisplayType, "Element14_7") == 0) // 7 inch screen
+          {
+            DisplayLogo();
+            cleanexit(137);
+          }
+          else
+          {
+            MsgBox("7 Inch Screen Required");
+            wait_touch();
+          }
+          BackgroundRGB(0, 0, 0, 255);
+          UpdateWindow();
+          break;
+        case 13:                                                 // NF Meter
+          if (strcmp(DisplayType, "Element14_7") == 0) // 7 inch screen
+          {
+            if((CheckLimeMiniConnect() == 0) || (CheckLimeUSBConnect() == 0))
+            {
+              DisplayLogo();
+              cleanexit(138);
+            }
+            else
+            {
+              MsgBox("No LimeSDR Connected");
+              wait_touch();
+            }
+          }
+          else
+          {
+            MsgBox("7 Inch Screen Required");
+            wait_touch();
+          }
+          BackgroundRGB(0, 0, 0, 255);
+          UpdateWindow();
+          break;
+        case 14:                                                 // XY
+          if (strcmp(DisplayType, "Element14_7") == 0) // 7 inch screen
+          {
+            DisplayLogo();
+            cleanexit(134);
+          }
+          else
+          {
+            MsgBox("7 Inch Screen Required");
+            wait_touch();
+          }
+          BackgroundRGB(0, 0, 0, 255);
           UpdateWindow();
           break;
         case 22:                              // Menu 1
@@ -17985,8 +18062,7 @@ void Define_Menu2()
   AddButtonStatus(button, "Snap^Check", &Blue);
 
   button = CreateButton(2, 8);
-  AddButtonStatus(button, "More^Functions", &Blue);
-
+  AddButtonStatus(button, "Test^Equipment", &Blue);
 
   button = CreateButton(2, 9);
   AddButtonStatus(button, "Stream^Viewer", &Blue);
@@ -18666,7 +18742,7 @@ void Define_Menu7()
 {
   int button;
 
-  strcpy(MenuTitle[7], "Menu 7 Extra Utilities");
+  strcpy(MenuTitle[7], "Menu 7 Test Equipment");
 
   // Bottom Line Menu 7: User Buttons
 
@@ -18690,13 +18766,28 @@ void Define_Menu7()
   AddButtonStatus(button, "Button 5", &Blue);
   AddButtonStatus(button, "Button 5", &Green);
 
-  // 2nd line up Menu 7:  
+  // 2nd line up Menu 7: 
+
+  button = CreateButton(7, 5);
+  AddButtonStatus(button, "Video^Snap", &Blue);
+  AddButtonStatus(button, " ", &Green);
 
   // 3rd line up Menu 7: 
 
   button = CreateButton(7, 10);
-  AddButtonStatus(button, "Video^Snap", &Blue);
-  AddButtonStatus(button, " ", &Green);
+  AddButtonStatus(button, "Signal^Generator", &Blue);
+
+  button = CreateButton(7, 11);
+  AddButtonStatus(button, "Band^Viewer", &Blue);
+
+  button = CreateButton(7, 12);
+  AddButtonStatus(button, "Power^Meter", &Blue);
+
+  button = CreateButton(7, 13);
+  AddButtonStatus(button, "NF^Meter", &Blue);
+
+  button = CreateButton(7, 14);
+  AddButtonStatus(button, "XY^Display", &Blue);
 
   // 4th line up Menu 7: 
 

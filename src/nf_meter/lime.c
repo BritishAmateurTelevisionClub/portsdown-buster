@@ -69,6 +69,7 @@ void *lime_thread(void *arg)
         device_info->deviceName,
         device_info->boardSerialNumber
     );
+
     printf(" - Hardware: v%s, Firmware: v%s, Gateware: v%s\n",
         device_info->hardwareVersion,
         device_info->firmwareVersion,
@@ -238,8 +239,6 @@ void *lime_thread(void *arg)
           }
           NewFreq = false;
 
-          LMS_GetLOFrequency(device, LMS_CH_RX, 0, &rxfreq);
-          printf("RXFREQ after cal = %f\n", rxfreq);
           LMS_GetLOFrequency(device, LMS_CH_RX, 0, &rxfreq);
           printf("RXFREQ after cal = %f\n", rxfreq);
 

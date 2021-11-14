@@ -653,6 +653,11 @@ case "$MODE_INPUT" in
           /home/pi/rpidatv/bin/dvb_t_stack -m $CONSTLN -f $FREQ_OUTPUTHZ -a $LIME_GAINF -r lime \
             -g 1/"$GUARD" -b $SYMBOLRATE -p 1314 -e "$FECNUM"/"$FECDEN" -n $PLUTOIP -i /dev/null &
         ;;
+        "LIMEUSB")
+          OUTPUT_IP="-n 127.0.0.1:1314"
+          /home/pi/rpidatv/bin/dvb_t_stack_limeusb -m $CONSTLN -f $FREQ_OUTPUTHZ -a $LIME_GAINF -r lime \
+            -g 1/"$GUARD" -b $SYMBOLRATE -p 1314 -e "$FECNUM"/"$FECDEN" -n $PLUTOIP -i /dev/null &
+        ;;
       esac
     fi
 
@@ -892,6 +897,11 @@ fi
           /home/pi/rpidatv/bin/dvb_t_stack -m $CONSTLN -f $FREQ_OUTPUTHZ -a $LIME_GAINF -r lime \
             -g 1/"$GUARD" -b $SYMBOLRATE -p 1314 -e "$FECNUM"/"$FECDEN" -i /dev/null &
         ;;
+        "LIMEUSB")
+          OUTPUT_IP="-n 127.0.0.1:1314"
+          /home/pi/rpidatv/bin/dvb_t_stack_limeusb -m $CONSTLN -f $FREQ_OUTPUTHZ -a $LIME_GAINF -r lime \
+            -g 1/"$GUARD" -b $SYMBOLRATE -p 1314 -e "$FECNUM"/"$FECDEN" -i /dev/null &
+        ;;
       esac
     fi
 
@@ -1116,6 +1126,11 @@ fi
           /home/pi/rpidatv/bin/dvb_t_stack -m $CONSTLN -f $FREQ_OUTPUTHZ -a $LIME_GAINF -r lime \
             -g 1/"$GUARD" -b $SYMBOLRATE -p 1314 -e "$FECNUM"/"$FECDEN" -i /dev/null &
         ;;
+        "LIMEUSB")
+          OUTPUT_IP="-n 127.0.0.1:1314"
+          /home/pi/rpidatv/bin/dvb_t_stack_limeusb -m $CONSTLN -f $FREQ_OUTPUTHZ -a $LIME_GAINF -r lime \
+            -g 1/"$GUARD" -b $SYMBOLRATE -p 1314 -e "$FECNUM"/"$FECDEN" -i /dev/null &
+        ;;
       esac
     fi
 
@@ -1257,6 +1272,11 @@ fi
           /home/pi/rpidatv/bin/dvb_t_stack -m $CONSTLN -f $FREQ_OUTPUTHZ -a $LIME_GAINF -r lime \
             -g 1/"$GUARD" -b $SYMBOLRATE -p 1314 -e "$FECNUM"/"$FECDEN" -i /dev/null &
         ;;
+        "LIMEUSB")
+          OUTPUT_IP="-n 127.0.0.1:1314"
+          /home/pi/rpidatv/bin/dvb_t_stack_limeusb -m $CONSTLN -f $FREQ_OUTPUTHZ -a $LIME_GAINF -r lime \
+            -g 1/"$GUARD" -b $SYMBOLRATE -p 1314 -e "$FECNUM"/"$FECDEN" -i /dev/null &
+        ;;
       esac
     fi
 
@@ -1313,6 +1333,11 @@ fi
         "LIMEMINI")
           OUTPUT_IP="-n 127.0.0.1:1314"
           /home/pi/rpidatv/bin/dvb_t_stack -m $CONSTLN -f $FREQ_OUTPUTHZ -a $LIME_GAINF -r lime \
+            -g 1/"$GUARD" -b $SYMBOLRATE -p $UDPINPORT -e "$FECNUM"/"$FECDEN" -i /dev/null &
+        ;;
+        "LIMEUSB")
+          OUTPUT_IP="-n 127.0.0.1:1314"
+          /home/pi/rpidatv/bin/dvb_t_stack_limeusb -m $CONSTLN -f $FREQ_OUTPUTHZ -a $LIME_GAINF -r lime \
             -g 1/"$GUARD" -b $SYMBOLRATE -p $UDPINPORT -e "$FECNUM"/"$FECDEN" -i /dev/null &
         ;;
       esac
@@ -1508,6 +1533,11 @@ fi
         if [ "$VIDEO_WIDTH" -lt 720 ]; then
           VIDEO_WIDTH=720
           VIDEO_HEIGHT=576
+        fi
+        if [ "$FORMAT" == "16:9" ]; then
+          SCALE="scale=512:288,"
+        else
+          SCALE=""
         fi
         if [ "$AUDIO_CARD" == "0" ]; then
           # No audio
